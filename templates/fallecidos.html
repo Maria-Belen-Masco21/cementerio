@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Fallecidos{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h4><i class="bi bi-person-x-fill me-2 text-success"></i>Registro de Fallecidos</h4>
+    <a href="{{ url_for('fallecido_nuevo') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Nuevo Fallecido
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span>Lista de Fallecidos</span>
+        <form method="GET" class="d-flex gap-2">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar fallecido...">
+            </div>
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Buscar</button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Fecha Fallecimiento</th>
+                    <th>Causa de Muerte</th>
+                    <th>Cliente / Familiar</th>
+                    <th>Certificado</th>
+                    <th>Observaciones</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in fallecidos %}
+                <tr>
+                    <td><b>{{ f.nombre }}</b></td>
+                    <td>{{ f.fecha_fallecimiento.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ f.causa_muerte or '-' }}</td>
+                    <td>{{ f.cliente.nombre_completo }}</td>
+                    <td><span class="text-monospace small">{{ f.certificado_defuncion or '-' }}</span></td>
+                    <td>{{ f.observaciones or '-' }}</td>
+                    <td class="text-center">
+                        <a href="{{ url_for('fallecido_editar', id=f.id) }}" class="btn btn-warning btn-action me-1">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('fallecido_eliminar', id=f.id) }}" class="d-inline"
+                              onsubmit="return confirm('¿Eliminar este registro?')">
+                            <button type="submit" class="btn btn-danger btn-action">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No se encontraron registros</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer text-muted small">Total: <b>{{ fallecidos|length }}</b></div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block auth_content %}
+<div class="login-page">
+    <div class="login-card">
+        <div class="login-logo"><i class="bi bi-building"></i></div>
+        <h4 class="text-center fw-bold mb-1" style="color:#1a2a4a;">CEMENTERIO</h4>
+        <p class="text-center text-muted small mb-4">Sistema de Registro y Control de Servicios</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }} py-2 small">{{ msg }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Usuario</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" name="username" class="form-control" placeholder="Ingrese usuario" required>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Contraseña</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" class="form-control" placeholder="Ingrese contraseña" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+            </button>
+        </form>
+        <p class="text-center text-muted mt-4 small">Usuario: <b>admin</b> / Contraseña: <b>admin123</b></p>
+    </div>
+</div>
+{% endblock %}

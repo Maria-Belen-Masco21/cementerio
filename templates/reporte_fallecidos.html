@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Reporte de Fallecidos{% endblock %}
+{% block content %}
+<div class="page-header no-print">
+    <h4><i class="bi bi-person-x-fill me-2 text-danger"></i>Reporte de Fallecidos</h4>
+    <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-printer me-1"></i>Imprimir
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-building fs-4 text-danger"></i>
+            <div><div class="fw-bold">REPORTE DE FALLECIDOS</div><div class="text-muted small">Sistema de Cementerio</div></div>
+        </div>
+        <div class="text-end small text-muted">Fecha: {{ fecha.strftime('%d/%m/%Y') }}<br>Hora: {{ fecha.strftime('%I:%M %p') }}</div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>Nombre del Fallecido</th>
+                    <th>Fecha Fallecimiento</th>
+                    <th>Causa de Muerte</th>
+                    <th>Servicio</th>
+                    <th>Ubicación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in fallecidos %}
+                <tr>
+                    <td><b>{{ f.nombre }}</b></td>
+                    <td>{{ f.fecha_fallecimiento.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ f.causa_muerte or '-' }}</td>
+                    <td>
+                        {% if f.servicios %}
+                            {{ f.servicios[0].tipo_servicio }}
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if f.servicios and f.servicios[0].nicho %}
+                            {{ f.servicios[0].nicho.codigo }}
+                        {% else %}-{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer text-muted small">
+        <b>Total de fallecidos: {{ fallecidos|length }}</b> &nbsp;|&nbsp; Página 1 de 1
+    </div>
+</div>
+{% endblock %}

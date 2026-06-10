@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Clientes{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h4><i class="bi bi-people-fill me-2 text-primary"></i>Registro de Clientes</h4>
+    <a href="{{ url_for('cliente_nuevo') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Nuevo Cliente
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span>Lista de Clientes</span>
+        <form method="GET" class="d-flex gap-2">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar cliente...">
+            </div>
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Buscar</button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>CI</th>
+                    <th>Nombre Completo</th>
+                    <th>Dirección</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in clientes %}
+                <tr>
+                    <td><b>{{ c.ci }}</b></td>
+                    <td>{{ c.nombre_completo }}</td>
+                    <td>{{ c.direccion or '-' }}</td>
+                    <td>{{ c.telefono or '-' }}</td>
+                    <td>{{ c.correo or '-' }}</td>
+                    <td>
+                        <span class="badge rounded-pill badge-estado-{{ c.estado|lower }}">{{ c.estado }}</span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('cliente_editar', id=c.id) }}" class="btn btn-warning btn-action me-1">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('cliente_eliminar', id=c.id) }}" class="d-inline"
+                              onsubmit="return confirm('¿Eliminar este cliente?')">
+                            <button type="submit" class="btn btn-danger btn-action">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No se encontraron clientes</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer text-muted small">Total de clientes: <b>{{ clientes|length }}</b></div>
+</div>
+{% endblock %}

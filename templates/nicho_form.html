@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if nicho else 'Nuevo' }} Nicho{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h4><i class="bi bi-grid-fill me-2 text-info"></i>{{ 'Editar' if nicho else 'Nuevo' }} Nicho</h4>
+    <a href="{{ url_for('nichos') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+</div>
+
+<div class="card" style="max-width:500px;">
+    <div class="card-header">Datos del Nicho</div>
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Código de Nicho *</label>
+                    <input type="text" name="codigo" class="form-control" value="{{ nicho.codigo if nicho else '' }}"
+                           placeholder="N-001-01-01" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Tipo *</label>
+                    <select name="tipo" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        <option value="Nicho Individual" {% if nicho and nicho.tipo == 'Nicho Individual' %}selected{% endif %}>Nicho Individual</option>
+                        <option value="Nicho Doble" {% if nicho and nicho.tipo == 'Nicho Doble' %}selected{% endif %}>Nicho Doble</option>
+                        <option value="Mausoleo" {% if nicho and nicho.tipo == 'Mausoleo' %}selected{% endif %}>Mausoleo</option>
+                        <option value="Osario" {% if nicho and nicho.tipo == 'Osario' %}selected{% endif %}>Osario</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Ubicación</label>
+                    <input type="text" name="ubicacion" class="form-control" value="{{ nicho.ubicacion if nicho else '' }}"
+                           placeholder="Sección A - Fila 1 - Col 1">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="Disponible" {% if not nicho or nicho.estado == 'Disponible' %}selected{% endif %}>Disponible</option>
+                        <option value="Ocupado" {% if nicho and nicho.estado == 'Ocupado' %}selected{% endif %}>Ocupado</option>
+                        <option value="Reservado" {% if nicho and nicho.estado == 'Reservado' %}selected{% endif %}>Reservado</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Observaciones</label>
+                    <textarea name="observaciones" class="form-control" rows="2">{{ nicho.observaciones if nicho else '' }}</textarea>
+                </div>
+            </div>
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="bi bi-floppy me-1"></i>{{ 'Modificar' if nicho else 'Guardar' }}
+                </button>
+                <a href="{{ url_for('nichos') }}" class="btn btn-secondary px-4">
+                    <i class="bi bi-x-circle me-1"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

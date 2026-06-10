@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Reporte Financiero{% endblock %}
+{% block content %}
+<div class="page-header no-print">
+    <h4><i class="bi bi-currency-dollar me-2 text-warning"></i>Reporte Financiero</h4>
+    <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-printer me-1"></i>Imprimir
+    </button>
+</div>
+
+<div class="card no-print mb-3" style="max-width:300px;">
+    <div class="card-body py-2">
+        <form method="GET" class="d-flex gap-2 align-items-end">
+            <div>
+                <label class="form-label mb-1 small">Mes</label>
+                <select name="mes" class="form-select form-select-sm">
+                    {% for m in range(1,13) %}
+                    <option value="{{ m }}" {% if m|string == mes|string %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label mb-1 small">Año</label>
+                <input type="number" name="anio" class="form-control form-control-sm" value="{{ anio }}" style="width:90px;">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Ver</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-building fs-4 text-warning"></i>
+            <div><div class="fw-bold">REPORTE FINANCIERO - MES {{ mes }}/{{ anio }}</div><div class="text-muted small">Resumen Mensual</div></div>
+        </div>
+        <div class="text-end small text-muted">Fecha: {{ fecha.strftime('%d/%m/%Y') }}</div>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <h6 class="fw-bold mb-2">RESUMEN DE INGRESOS</h6>
+                <table class="table table-sm table-bordered">
+                    <thead class="table-success">
+                        <tr><th>Descripción</th><th>Monto (Bs.)</th></tr>
+                    </thead>
+                    <tbody>
+                        {% set inhumaciones = pagos|selectattr('servicio.tipo_servicio', 'equalto', 'Inhumación')|selectattr('estado','equalto','Pagado')|list %}
+                        {% set cremaciones = pagos|selectattr('servicio.tipo_servicio', 'equalto', 'Cremación')|selectattr('estado','equalto','Pagado')|list %}
+                        <tr><td>Servicios de Inhumación</td><td>{{ "%.2f"|format(inhumaciones|sum(attribute='monto')) }}</td></tr>
+                        <tr><td>Servicios de Cremación</td><td>{{ "%.2f"|format(cremaciones|sum(attribute='monto')) }}</td></tr>
+                        <tr><td>Otros Servicios</td><td>0.00</td></tr>
+                        <tr class="table-success fw-bold"><td>TOTAL INGRESOS</td><td>{{ "%.2f"|format(total_ingresos) }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold mb-2">RESUMEN DE EGRESOS</h6>
+                <table class="table table-sm table-bordered">
+                    <thead class="table-danger">
+                        <tr><th>Descripción</th><th>Monto (Bs.)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Gastos Administrativos</td><td>0.00</td></tr>
+                        <tr><td>Mantenimiento</td><td>0.00</td></tr>
+                        <tr><td>Servicios Generales</td><td>0.00</td></tr>
+                        <tr><td>Otros Gastos</td><td>0.00</td></tr>
+                        <tr class="table-danger fw-bold"><td>TOTAL EGRESOS</td><td>0.00</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="text-center mt-3 p-3 rounded" style="background:#f0fdf4; border:2px solid #22c55e;">
+            <div class="small text-muted mb-1">UTILIDAD NETA DEL MES</div>
+            <div class="fw-bold fs-3 text-success">Bs. {{ "%.2f"|format(total_ingresos) }}</div>
+        </div>
+    </div>
+    <div class="card-header mt-0 border-top">
+        <span class="fw-bold">Detalle de Pagos del Mes</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr><th>Fecha</th><th>Servicio</th><th>Monto (Bs.)</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+                {% for p in pagos %}
+                <tr>
+                    <td>{{ p.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ p.servicio.fallecido.nombre }} - {{ p.servicio.tipo_servicio }}</td>
+                    <td>{{ "%.2f"|format(p.monto) }}</td>
+                    <td><span class="badge rounded-pill badge-estado-{{ p.estado|lower }}">{{ p.estado }}</span></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-muted py-3">Sin pagos en este período</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer text-muted small">Página 1 de 1</div>
+</div>
+{% endblock %}

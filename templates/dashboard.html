@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Sistema Cementerio{% endblock %}
+{% block content %}
+<div class="welcome-banner">
+    <h3><i class="bi bi-house-fill me-2"></i>Bienvenido al Sistema</h3>
+    <p>Sistema para el Registro y Control de Servicios en un Cementerio</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-number text-primary">{{ clientes }}</div>
+            <div class="stat-label"><i class="bi bi-people me-1"></i>Clientes</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card green">
+            <div class="stat-number" style="color:#166534;">{{ fallecidos }}</div>
+            <div class="stat-label"><i class="bi bi-person-x me-1"></i>Fallecidos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card orange">
+            <div class="stat-number" style="color:#854d0e;">{{ servicios }}</div>
+            <div class="stat-label"><i class="bi bi-clipboard2 me-1"></i>Servicios</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card red">
+            <div class="stat-number" style="color:#991b1b;">{{ pagos_hoy }}</div>
+            <div class="stat-label"><i class="bi bi-cash me-1"></i>Pagos Hoy</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-lightning-fill text-warning me-2"></i>Accesos Rápidos</div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="{{ url_for('cliente_nuevo') }}" class="btn btn-outline-primary w-100 py-3">
+                            <i class="bi bi-person-plus-fill d-block fs-4 mb-1"></i>Nuevo Cliente
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ url_for('fallecido_nuevo') }}" class="btn btn-outline-success w-100 py-3">
+                            <i class="bi bi-file-plus d-block fs-4 mb-1"></i>Nuevo Fallecido
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ url_for('servicio_nuevo') }}" class="btn btn-outline-warning w-100 py-3">
+                            <i class="bi bi-clipboard-plus d-block fs-4 mb-1"></i>Nuevo Servicio
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ url_for('pago_nuevo') }}" class="btn btn-outline-danger w-100 py-3">
+                            <i class="bi bi-cash-coin d-block fs-4 mb-1"></i>Registrar Pago
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Reportes Disponibles</div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('reporte_clientes') }}" class="list-group-item list-group-item-action py-2">
+                        <i class="bi bi-people me-2 text-primary"></i>Reporte de Clientes
+                    </a>
+                    <a href="{{ url_for('reporte_nichos') }}" class="list-group-item list-group-item-action py-2">
+                        <i class="bi bi-grid me-2 text-success"></i>Reporte de Nichos
+                    </a>
+                    <a href="{{ url_for('reporte_financiero') }}" class="list-group-item list-group-item-action py-2">
+                        <i class="bi bi-currency-dollar me-2 text-warning"></i>Reporte Financiero
+                    </a>
+                    <a href="{{ url_for('reporte_fallecidos') }}" class="list-group-item list-group-item-action py-2">
+                        <i class="bi bi-person-x me-2 text-danger"></i>Reporte de Fallecidos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

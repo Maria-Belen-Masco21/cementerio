@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Reportes{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h4><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Reportes del Sistema</h4>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reporte_clientes') }}" class="text-decoration-none">
+            <div class="card h-100 text-center p-4" style="border-top:4px solid #2563eb;">
+                <i class="bi bi-people-fill fs-1 text-primary mb-3"></i>
+                <h6 class="fw-bold">Reporte de Clientes</h6>
+                <p class="text-muted small mb-0">Lista completa de clientes registrados</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reporte_nichos') }}" class="text-decoration-none">
+            <div class="card h-100 text-center p-4" style="border-top:4px solid #22c55e;">
+                <i class="bi bi-grid-fill fs-1 text-success mb-3"></i>
+                <h6 class="fw-bold">Reporte de Nichos</h6>
+                <p class="text-muted small mb-0">Estado y disponibilidad de nichos</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reporte_financiero') }}" class="text-decoration-none">
+            <div class="card h-100 text-center p-4" style="border-top:4px solid #f59e0b;">
+                <i class="bi bi-currency-dollar fs-1 text-warning mb-3"></i>
+                <h6 class="fw-bold">Reporte Financiero</h6>
+                <p class="text-muted small mb-0">Resumen mensual de ingresos y egresos</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reporte_fallecidos') }}" class="text-decoration-none">
+            <div class="card h-100 text-center p-4" style="border-top:4px solid #ef4444;">
+                <i class="bi bi-person-x-fill fs-1 text-danger mb-3"></i>
+                <h6 class="fw-bold">Reporte de Fallecidos</h6>
+                <p class="text-muted small mb-0">Historial de fallecidos y servicios</p>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

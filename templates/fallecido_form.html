@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if fallecido else 'Nuevo' }} Fallecido{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h4><i class="bi bi-person-x-fill me-2 text-success"></i>{{ 'Editar' if fallecido else 'Nuevo' }} Fallecido</h4>
+    <a href="{{ url_for('fallecidos') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+</div>
+
+<div class="card" style="max-width:600px;">
+    <div class="card-header">Datos del Fallecido</div>
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Nombre del Fallecido *</label>
+                    <input type="text" name="nombre" class="form-control" value="{{ fallecido.nombre if fallecido else '' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Fecha de Fallecimiento *</label>
+                    <input type="date" name="fecha_fallecimiento" class="form-control"
+                           value="{{ fallecido.fecha_fallecimiento.strftime('%Y-%m-%d') if fallecido else '' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Causa de Muerte</label>
+                    <input type="text" name="causa_muerte" class="form-control" value="{{ fallecido.causa_muerte if fallecido else '' }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Cliente / Familiar *</label>
+                    <select name="cliente_id" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        {% for c in clientes %}
+                        <option value="{{ c.id }}" {% if fallecido and fallecido.cliente_id == c.id %}selected{% endif %}>
+                            {{ c.ci }} - {{ c.nombre_completo }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Certificado de Defunción</label>
+                    <input type="text" name="certificado_defuncion" class="form-control"
+                           value="{{ fallecido.certificado_defuncion if fallecido else '' }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Observaciones</label>
+                    <textarea name="observaciones" class="form-control" rows="2">{{ fallecido.observaciones if fallecido else '' }}</textarea>
+                </div>
+            </div>
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="bi bi-floppy me-1"></i>{{ 'Modificar' if fallecido else 'Guardar' }}
+                </button>
+                <a href="{{ url_for('fallecidos') }}" class="btn btn-secondary px-4">
+                    <i class="bi bi-x-circle me-1"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

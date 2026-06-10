@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Pagos{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h4><i class="bi bi-cash-stack me-2 text-danger"></i>Registro de Pagos</h4>
+    <a href="{{ url_for('pago_nuevo') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Nuevo Pago
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">Lista de Pagos</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Servicio (Fallecido)</th>
+                    <th>Tipo Servicio</th>
+                    <th>Monto (Bs.)</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                    <th>Observaciones</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagos %}
+                <tr>
+                    <td>{{ p.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                    <td><b>{{ p.servicio.fallecido.nombre }}</b></td>
+                    <td>{{ p.servicio.tipo_servicio }}</td>
+                    <td><b>{{ "%.2f"|format(p.monto) }}</b></td>
+                    <td>{{ p.metodo_pago or '-' }}</td>
+                    <td>
+                        <span class="badge rounded-pill badge-estado-{{ p.estado|lower }}">{{ p.estado }}</span>
+                    </td>
+                    <td>{{ p.observaciones or '-' }}</td>
+                    <td class="text-center">
+                        <a href="{{ url_for('pago_editar', id=p.id) }}" class="btn btn-warning btn-action me-1">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('pago_eliminar', id=p.id) }}" class="d-inline"
+                              onsubmit="return confirm('¿Eliminar este pago?')">
+                            <button type="submit" class="btn btn-danger btn-action">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No se encontraron pagos</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer text-muted small">Total registros: <b>{{ pagos|length }}</b></div>
+</div>
+{% endblock %}
