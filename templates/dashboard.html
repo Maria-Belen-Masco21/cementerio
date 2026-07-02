@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Dashboard - Sistema Cementerio{% endblock %}
 {% block content %}
-<div class="welcome-banner">
-    <h3><i class="bi bi-house-fill me-2"></i>Bienvenido al Sistema</h3>
+<div class="welcome-banner cemetery-scene">
+    <div class="cemetery-moon" style="width:44px;height:44px;top:14px;right:24px;"></div>
+    <div class="cemetery-fog"></div>
+    <h3><i class="bi bi-house-fill me-2"></i>Bienvenido, {{ session.nombre }}</h3>
     <p>Sistema para el Registro y Control de Servicios en un Cementerio</p>
 </div>
 

@@ -1,16 +1,34 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime, date
 import os
 
-app = Flask(__name__)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+INSTANCE_DIR = os.path.join(BASE_DIR, 'instance')
+os.makedirs(INSTANCE_DIR, exist_ok=True)
+
+app = Flask(__name__, instance_relative_config=True)
 app.config['SECRET_KEY'] = 'cementerio_secret_key_2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cementerio.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(INSTANCE_DIR, 'cementerio.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+
+# Activa las restricciones de llave foranea en SQLite (vienen desactivadas
+# por defecto) para que la integridad referencial se respete siempre.
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+# ============ MODELOS ============
 
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,6 +99,9 @@ class Pago(db.Model):
     estado = db.Column(db.String(20), default='Pendiente')
     observaciones = db.Column(db.Text)
 
+
+# ============ DECORADORES ============
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -88,6 +109,9 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+
+# ============ RUTAS AUTH ============
 
 @app.route('/')
 def index():
@@ -115,6 +139,9 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+
+# ============ DASHBOARD ============
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -122,7 +149,14 @@ def dashboard():
     fallecidos = Fallecido.query.count()
     servicios = Servicio.query.count()
     pagos_hoy = Pago.query.filter_by(fecha_pago=date.today()).count()
-    return render_template('dashboard.html', clientes=clientes, fallecidos=fallecidos,servicios=servicios,pagos_hoy=pagos_hoy)
+    return render_template('dashboard.html',
+                           clientes=clientes,
+                           fallecidos=fallecidos,
+                           servicios=servicios,
+                           pagos_hoy=pagos_hoy)
+
+
+# ============ CLIENTES CRUD ============
 
 @app.route('/clientes')
 @login_required
@@ -150,7 +184,8 @@ def cliente_nuevo():
             direccion=request.form.get('direccion'),
             telefono=request.form.get('telefono'),
             correo=request.form.get('correo'),
-            estado=request.form.get('estado', 'Activo'))
+            estado=request.form.get('estado', 'Activo')
+        )
         db.session.add(c)
         db.session.commit()
         flash('Cliente registrado correctamente', 'success')
@@ -177,10 +212,17 @@ def cliente_editar(id):
 @login_required
 def cliente_eliminar(id):
     c = Cliente.query.get_or_404(id)
+    if c.fallecidos or c.servicios:
+        flash('No se puede eliminar: el cliente tiene fallecidos o servicios '
+              'registrados a su nombre. Elimine o reasigne esos registros primero.', 'danger')
+        return redirect(url_for('clientes'))
     db.session.delete(c)
     db.session.commit()
     flash('Cliente eliminado', 'warning')
     return redirect(url_for('clientes'))
+
+
+# ============ FALLECIDOS CRUD ============
 
 @app.route('/fallecidos')
 @login_required
@@ -203,8 +245,8 @@ def fallecido_nuevo():
             causa_muerte=request.form.get('causa_muerte'),
             cliente_id=request.form['cliente_id'],
             certificado_defuncion=request.form.get('certificado_defuncion'),
-            observaciones=request.form.get('observaciones'))
-        
+            observaciones=request.form.get('observaciones')
+        )
         db.session.add(f)
         db.session.commit()
         flash('Fallecido registrado', 'success')
@@ -232,17 +274,26 @@ def fallecido_editar(id):
 @login_required
 def fallecido_eliminar(id):
     f = Fallecido.query.get_or_404(id)
+    if f.servicios:
+        flash('No se puede eliminar: este fallecido tiene servicios registrados. '
+              'Elimine primero esos servicios.', 'danger')
+        return redirect(url_for('fallecidos'))
     db.session.delete(f)
     db.session.commit()
     flash('Fallecido eliminado', 'warning')
     return redirect(url_for('fallecidos'))
+
+
+# ============ NICHOS CRUD ============
 
 @app.route('/nichos')
 @login_required
 def nichos():
     q = request.args.get('q', '')
     if q:
-        lista = Nicho.query.filter((Nicho.codigo.ilike(f'%{q}%')) | (Nicho.ubicacion.ilike(f'%{q}%'))).all()
+        lista = Nicho.query.filter(
+            (Nicho.codigo.ilike(f'%{q}%')) | (Nicho.ubicacion.ilike(f'%{q}%'))
+        ).all()
     else:
         lista = Nicho.query.all()
     return render_template('nichos.html', nichos=lista, q=q)
@@ -286,10 +337,17 @@ def nicho_editar(id):
 @login_required
 def nicho_eliminar(id):
     n = Nicho.query.get_or_404(id)
+    if n.estado == 'Ocupado' or n.servicios:
+        flash('No se puede eliminar: el nicho está ocupado o tiene servicios '
+              'asociados en su historial.', 'danger')
+        return redirect(url_for('nichos'))
     db.session.delete(n)
     db.session.commit()
     flash('Nicho eliminado', 'warning')
     return redirect(url_for('nichos'))
+
+
+# ============ SERVICIOS CRUD ============
 
 @app.route('/servicios')
 @login_required
@@ -309,6 +367,7 @@ def servicio_nuevo():
     nichos_lista = Nicho.query.filter_by(estado='Disponible').all()
     if request.method == 'POST':
         nicho_id = request.form.get('nicho_id') or None
+        nicho_id = int(nicho_id) if nicho_id else None
         s = Servicio(
             cliente_id=request.form['cliente_id'],
             fallecido_id=request.form['fallecido_id'],
@@ -337,9 +396,22 @@ def servicio_editar(id):
     fallecidos_lista = Fallecido.query.all()
     nichos_lista = Nicho.query.all()
     if request.method == 'POST':
+        nuevo_nicho_id = request.form.get('nicho_id') or None
+        nuevo_nicho_id = int(nuevo_nicho_id) if nuevo_nicho_id else None
+        if nuevo_nicho_id != s.nicho_id:
+            # Libera el nicho anterior (si tenía uno)
+            if s.nicho_id:
+                nicho_anterior = Nicho.query.get(s.nicho_id)
+                if nicho_anterior:
+                    nicho_anterior.estado = 'Disponible'
+            # Ocupa el nuevo nicho (si se asignó uno)
+            if nuevo_nicho_id:
+                nicho_nuevo = Nicho.query.get(nuevo_nicho_id)
+                if nicho_nuevo:
+                    nicho_nuevo.estado = 'Ocupado'
         s.cliente_id = request.form['cliente_id']
         s.fallecido_id = request.form['fallecido_id']
-        s.nicho_id = request.form.get('nicho_id') or None
+        s.nicho_id = nuevo_nicho_id
         s.fecha_servicio = datetime.strptime(request.form['fecha_servicio'], '%Y-%m-%d').date()
         s.tipo_servicio = request.form['tipo_servicio']
         s.costo = float(request.form['costo'])
@@ -347,16 +419,28 @@ def servicio_editar(id):
         db.session.commit()
         flash('Servicio actualizado', 'success')
         return redirect(url_for('servicios'))
-    return render_template('servicio_form.html', servicio=s,clientes=clientes_lista, fallecidos=fallecidos_lista, nichos=nichos_lista)
+    return render_template('servicio_form.html', servicio=s,
+                           clientes=clientes_lista, fallecidos=fallecidos_lista, nichos=nichos_lista)
 
 @app.route('/servicios/eliminar/<int:id>', methods=['POST'])
 @login_required
 def servicio_eliminar(id):
     s = Servicio.query.get_or_404(id)
+    if s.pagos:
+        flash('No se puede eliminar: este servicio tiene pagos registrados. '
+              'Elimine primero esos pagos.', 'danger')
+        return redirect(url_for('servicios'))
+    if s.nicho_id:
+        nicho = Nicho.query.get(s.nicho_id)
+        if nicho:
+            nicho.estado = 'Disponible'
     db.session.delete(s)
     db.session.commit()
     flash('Servicio eliminado', 'warning')
     return redirect(url_for('servicios'))
+
+
+# ============ PAGOS CRUD ============
 
 @app.route('/pagos')
 @login_required
@@ -410,6 +494,9 @@ def pago_eliminar(id):
     flash('Pago eliminado', 'warning')
     return redirect(url_for('pagos'))
 
+
+# ============ REPORTES ============
+
 @app.route('/reportes')
 @login_required
 def reportes():
@@ -429,25 +516,30 @@ def reporte_nichos():
     disponibles = sum(1 for n in lista if n.estado == 'Disponible')
     ocupados = sum(1 for n in lista if n.estado == 'Ocupado')
     mausoleos = sum(1 for n in lista if n.tipo == 'Mausoleo')
-    return render_template('reporte_nichos.html', nichos=lista, total=total,disponibles=disponibles, ocupados=ocupados, mausoleos=mausoleos, fecha=date.today())
+    return render_template('reporte_nichos.html', nichos=lista, total=total,
+                           disponibles=disponibles, ocupados=ocupados, mausoleos=mausoleos, fecha=date.today())
 
 @app.route('/reportes/financiero')
 @login_required
 def reporte_financiero():
-    mes = request.args.get('mes', date.today().month)
-    anio = request.args.get('anio', date.today().year)
+    mes = int(request.args.get('mes') or date.today().month)
+    anio = int(request.args.get('anio') or date.today().year)
     pagos_mes = Pago.query.filter(
         db.extract('month', Pago.fecha_pago) == mes,
         db.extract('year', Pago.fecha_pago) == anio
     ).all()
     total_ingresos = sum(p.monto for p in pagos_mes if p.estado == 'Pagado')
-    return render_template('reporte_financiero.html', pagos=pagos_mes,total_ingresos=total_ingresos, mes=mes, anio=anio, fecha=date.today())
+    return render_template('reporte_financiero.html', pagos=pagos_mes,
+                           total_ingresos=total_ingresos, mes=mes, anio=anio, fecha=date.today())
 
 @app.route('/reportes/fallecidos')
 @login_required
 def reporte_fallecidos():
     lista = Fallecido.query.order_by(Fallecido.fecha_fallecimiento.desc()).all()
     return render_template('reporte_fallecidos.html', fallecidos=lista, fecha=date.today())
+
+
+# ============ USUARIOS CRUD ============
 
 @app.route('/usuarios')
 @login_required
@@ -507,16 +599,46 @@ def usuario_eliminar(id):
         flash('Acceso denegado', 'danger')
         return redirect(url_for('dashboard'))
     u = Usuario.query.get_or_404(id)
+    if u.id == session.get('user_id'):
+        flash('No puede eliminar su propio usuario mientras tiene una sesión activa.', 'danger')
+        return redirect(url_for('usuarios'))
     db.session.delete(u)
     db.session.commit()
     flash('Usuario eliminado', 'warning')
     return redirect(url_for('usuarios'))
+
+
+# ============ MANEJO DE ERRORES ============
+
+@app.errorhandler(IntegrityError)
+def handle_integrity_error(e):
+    db.session.rollback()
+    flash('No se pudo completar la operación porque el registro tiene datos '
+          'relacionados en otras secciones del sistema.', 'danger')
+    return redirect(request.referrer or url_for('dashboard'))
+
+@app.errorhandler(404)
+def handle_404(e):
+    return render_template('error.html', codigo=404,
+                           mensaje='La página que buscas no existe.'), 404
+
+@app.errorhandler(500)
+def handle_500(e):
+    db.session.rollback()
+    return render_template('error.html', codigo=500,
+                           mensaje='Ocurrió un error interno en el servidor.'), 500
+
+
+# ============ API AJAX ============
 
 @app.route('/api/fallecidos_por_cliente/<int:cliente_id>')
 @login_required
 def fallecidos_por_cliente(cliente_id):
     lista = Fallecido.query.filter_by(cliente_id=cliente_id).all()
     return jsonify([{'id': f.id, 'nombre': f.nombre} for f in lista])
+
+
+# ============ INICIALIZAR BD ============
 
 def init_db():
     db.create_all()

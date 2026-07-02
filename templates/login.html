@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% block auth_content %}
-<div class="login-page">
+<div class="login-page cemetery-scene">
+    <div class="cemetery-moon"></div>
+    <div class="cemetery-fog"></div>
     <div class="login-card">
         <div class="login-logo"><i class="bi bi-building"></i></div>
-        <h4 class="text-center fw-bold mb-1" style="color:#1a2a4a;">CEMENTERIO</h4>
-        <p class="text-center text-muted small mb-4">Sistema de Registro y Control de Servicios</p>
+        <h4 class="text-center fw-bold mb-1" style="color:var(--ink);">CEMENTERIO</h4>
+        <p class="text-center text-muted small mb-3">Sistema de Registro y Control de Servicios</p>
+        <div class="login-subtitle-divider"><i class="bi bi-shield-lock small"></i></div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}

@@ -26,14 +26,16 @@
                 </div>
                 <div class="col-12">
                     <label class="form-label">Fallecido *</label>
-                    <select name="fallecido_id" class="form-select" required>
-                        <option value="">-- Seleccione fallecido --</option>
+                    <select name="fallecido_id" class="form-select" id="fallecido_id" required>
+                        <option value="">-- Primero seleccione un cliente --</option>
                         {% for f in fallecidos %}
-                        <option value="{{ f.id }}" {% if servicio and servicio.fallecido_id == f.id %}selected{% endif %}>
+                        <option value="{{ f.id }}" data-cliente="{{ f.cliente_id }}"
+                                {% if servicio and servicio.fallecido_id == f.id %}selected{% endif %}>
                             {{ f.nombre }}
                         </option>
                         {% endfor %}
                     </select>
+                    <div class="form-text">La lista se filtra automáticamente según el cliente seleccionado.</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Fecha de Servicio *</label>
@@ -83,4 +85,51 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const clienteSelect = document.getElementById('cliente_id');
+    const fallecidoSelect = document.getElementById('fallecido_id');
+    const fallecidoSeleccionadoInicial = "{{ servicio.fallecido_id if servicio else '' }}";
+
+    function cargarFallecidos(clienteId, preseleccion) {
+        fallecidoSelect.innerHTML = '<option value="">Cargando...</option>';
+        if (!clienteId) {
+            fallecidoSelect.innerHTML = '<option value="">-- Primero seleccione un cliente --</option>';
+            return;
+        }
+        fetch(`/api/fallecidos_por_cliente/${clienteId}`)
+            .then(resp => resp.json())
+            .then(lista => {
+                fallecidoSelect.innerHTML = '<option value="">-- Seleccione fallecido --</option>';
+                if (lista.length === 0) {
+                    fallecidoSelect.innerHTML += '<option value="" disabled>Este cliente no tiene fallecidos registrados</option>';
+                }
+                lista.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.id;
+                    opt.textContent = f.nombre;
+                    if (preseleccion && String(f.id) === String(preseleccion)) {
+                        opt.selected = true;
+                    }
+                    fallecidoSelect.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                fallecidoSelect.innerHTML = '<option value="">-- Error al cargar --</option>';
+            });
+    }
+
+    clienteSelect.addEventListener('change', function () {
+        cargarFallecidos(this.value, null);
+    });
+
+    // Al cargar la página (modo edición o cliente ya elegido), precargar la lista
+    if (clienteSelect.value) {
+        cargarFallecidos(clienteSelect.value, fallecidoSeleccionadoInicial);
+    }
+})();
+</script>
 {% endblock %}
